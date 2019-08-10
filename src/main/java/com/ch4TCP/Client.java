@@ -3,7 +3,6 @@ package com.ch4TCP;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Array;
 import java.net.*;
 
 public class Client {
@@ -40,12 +39,13 @@ public class Client {
         //得到socket输入流
         InputStream inputStream = socket.getInputStream();
         byte [] buf = new byte[128];
+        byte[] inBuf = Tools.intToByteArray(1222221);
         //发送数据
-        outputStream.write(new byte[]{1});
+        outputStream.write(inBuf);
         //接收数据
         int read = inputStream.read(buf);
         if (read > 0){
-            System.out.println("收到数量:" + read + "数据为 " + Array.getByte(buf, 0));
+            System.out.println("收到数量:" + read + "数据为 " + Tools.byteArrayToInt(buf));
         }else {
             System.out.println("没有收到数量:" + read);
         }

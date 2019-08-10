@@ -46,7 +46,7 @@ public class Server {
                 byte[] buff = new byte[128];
                 int read = inputStream.read(buff);
                 if (read > 0){
-                    System.out.println("读取数据长度 : " + read + " 数据为" + Array.getByte(buff, 0));//new String(buff, 0 , read));
+                    System.out.println("读取数据长度 : " + read + " 数据为" + Tools.byteArrayToInt(buff)); // Array.getByte(buff, 0)//new String(buff, 0 , read));
                     outputStream.write(buff, 0 ,read);
                 }else {
                     System.out.println("未收到数据" + read);
