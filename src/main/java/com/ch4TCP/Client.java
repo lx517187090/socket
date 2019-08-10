@@ -1,6 +1,9 @@
 package com.ch4TCP;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.reflect.Array;
 import java.net.*;
 
 public class Client {
@@ -31,8 +34,24 @@ public class Client {
         System.out.println("客户端已退出");
     }
 
-    private static void todo(Socket socket) {
+    private static void todo(Socket socket) throws IOException {
+        //得到socket输出流
+        OutputStream outputStream = socket.getOutputStream();
+        //得到socket输入流
+        InputStream inputStream = socket.getInputStream();
+        byte [] buf = new byte[128];
+        //发送数据
+        outputStream.write(new byte[]{1});
+        //接收数据
+        int read = inputStream.read(buf);
+        if (read > 0){
+            System.out.println("收到数量:" + read + "数据为 " + Array.getByte(buf, 0));
+        }else {
+            System.out.println("没有收到数量:" + read);
+        }
 
+        outputStream.close();
+        inputStream.close();
     }
 
     private static void initSocket(Socket socket) throws SocketException {
