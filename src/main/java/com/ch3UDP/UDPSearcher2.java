@@ -101,7 +101,7 @@ public class UDPSearcher2 {
             super.run();
             countDownLatch.countDown();
             try {
-                ds = new DatagramSocket(listenPort);
+                ds = new DatagramSocket();
                 while (!done){
                     final byte [] buff = new byte[512];
                     DatagramPacket receive = new DatagramPacket(buff, buff.length);
