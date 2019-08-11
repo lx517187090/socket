@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.*;
+import java.nio.ByteBuffer;
 
 public class Client {
 
@@ -39,9 +40,13 @@ public class Client {
         //得到socket输入流
         InputStream inputStream = socket.getInputStream();
         byte [] buf = new byte[128];
-        byte[] inBuf = Tools.intToByteArray(1222221);
+
+
+        ByteBuffer byteBuffer = ByteBuffer.wrap(buf);
+
+        byteBuffer.put((byte)126);
         //发送数据
-        outputStream.write(inBuf);
+        outputStream.write(buf, byteBuffer.position(), byteBuffer.limit());
         //接收数据
         int read = inputStream.read(buf);
         if (read > 0){
