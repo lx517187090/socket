@@ -34,6 +34,10 @@ public class TCPServer {
         }
     }
 
+    public void broadcast() {
+
+    }
+
 
     private static class ClientListener extends Thread{
 
