@@ -42,15 +42,13 @@ public class Server {
             System.out.println("start TCP server failed!");
             return;
         }
-        UDPProvider.start(TCPConstants.PORT_SERVER);
+        ServerProvider.start(TCPConstants.PORT_SERVER);
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
         String str ;
         do {
             str = bufferedReader.readLine();
             tcpServer.broadcast(str);
         } while (!"0000".equals(str));
-
-
         UDPProvider.stop();
         tcpServer.stop();
     }

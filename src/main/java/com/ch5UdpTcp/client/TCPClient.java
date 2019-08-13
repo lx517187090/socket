@@ -13,27 +13,20 @@ public class TCPClient {
 
     public static void linkWith(ServerInfo info) throws IOException {
         Socket socket = new Socket();
-
         socket.setSoTimeout(3000);
-
         socket.connect(new InetSocketAddress(Inet4Address.getByName(info.getAddress()), info.getPort()));
-
         System.out.println("已发起服务器连接");
         System.out.println("客户端信息 " + socket.getLocalAddress() + " P: " + socket.getLocalPort());
         System.out.println("服务端信息 " + socket.getInetAddress() + " P :" + socket.getPort());
-
         try {
             ReadHandler readHandler = new ReadHandler(socket.getInputStream());
             readHandler.start();
-
             write(socket);
-
             //退出操作
             readHandler.exit();
         }catch (Exception e){
             e.printStackTrace();
         }
-
         socket.close();
         System.out.println("客户端已退出");
     }
@@ -41,9 +34,7 @@ public class TCPClient {
     private static void write(Socket socket) throws IOException {
         InputStream in = System.in;
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in));
-
         PrintStream socketPrintStream = new PrintStream(socket.getOutputStream());
-
         do {
             String str = bufferedReader.readLine();
             socketPrintStream.println(str);

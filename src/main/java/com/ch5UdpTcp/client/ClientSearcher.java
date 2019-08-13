@@ -41,9 +41,7 @@ public class ClientSearcher {
 
     private static void sendBroadCast() throws IOException {
         System.out.println("UDPSearcher sendBroadCast started ");
-
         DatagramSocket ds = new DatagramSocket();
-
         ByteBuffer byteBuffer = ByteBuffer.allocate(128);
         byteBuffer.put(UDPConstants.HEADER);
         byteBuffer.putShort((short)1);
@@ -53,7 +51,6 @@ public class ClientSearcher {
         requestPack.setPort(UDPConstants.PORT_SERVER);
         ds.send(requestPack);
         ds.close();
-
         System.out.println("UDPSearcher sendBroadCast finished.. ");
 
     }
@@ -96,14 +93,11 @@ public class ClientSearcher {
             super.run();
             //通知已启动
             startDownLatch.countDown();
-
             try{
                 ds = new DatagramSocket(listenPort);
-
                 DatagramPacket receivePack = new DatagramPacket(buffer, buffer.length);
                 while (!done){
                     ds.receive(receivePack);
-
                     String ip = receivePack.getAddress().getHostAddress();
                     int port = receivePack.getPort();
                     int dataLength = receivePack.getLength();
