@@ -12,13 +12,12 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class ClientSearcher {
+class ClientSearcher {
 
     private static final int LISTEN_PORT = UDPConstants.PORT_CLIENT_RESPONSE;
 
-    public static ServerInfo searchServer(int timeout) {
+    static ServerInfo searchServer(int timeout) {
         System.out.println("udpSearcher start....");
-
         CountDownLatch receiveLatch = new CountDownLatch(1);
         Listener listener = null;
         try {
@@ -66,7 +65,6 @@ public class ClientSearcher {
 
 
     private static class Listener extends Thread{
-
         private final int listenPort;
         private final CountDownLatch startDownLatch;
         private final CountDownLatch receiveLatch;

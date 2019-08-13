@@ -39,13 +39,11 @@ public class ServerProvider {
         public void run() {
             super.run();
             System.out.println("UDPProvider start......");
-
             try {
                 //监听30201端口
                 ds = new DatagramSocket(UDPConstants.PORT_SERVER);
                 //接收消息的packet
                 DatagramPacket receivePack = new DatagramPacket(buffer, buffer.length);
-
                 while (!done){
                     //接收
                     ds.receive(receivePack);
@@ -59,28 +57,22 @@ public class ServerProvider {
 
                     System.out.println("serverProvider receive from ip:" + clientIp +
                             "  port : " + clientPort + "dataValid :" + isValid);
-
                     if (!isValid){
                         continue;
                     }
-
                     //解析命令与会送端口
                     int index = UDPConstants.HEADER.length;
-
                     short cmd = (short)((clientData[index++] << 8) | (clientData[index++] & 0xFF));
-
                     int responsePort = (((clientData[index++]) << 24) |
                             ((clientData[index++] & 0xFF) << 16) |
                             ((clientData[index++] & 0xFF) << 8) |
                             (clientData[index++] & 0xFF));
-
                     if (cmd == 1 && responsePort > 0){
                         ByteBuffer byteBuffer = ByteBuffer.wrap(buffer);
                         byteBuffer.put(UDPConstants.HEADER);
                         byteBuffer.putShort((short)2);
                         byteBuffer.putInt(port);
                         byteBuffer.put(sn);
-
                         int len = byteBuffer.position();
                         //直接构建会送数据
                         DatagramPacket response = new DatagramPacket(buffer, len, receivePack.getAddress(), responsePort);
