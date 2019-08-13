@@ -13,9 +13,7 @@ public class UDPProvider2 {
     public static void main(String[] args) throws IOException {
         String sn = UUID.randomUUID().toString();
         Provider provider = new Provider(sn);
-
         provider.start();
-
         System.in.read();
         provider.exit();
     }

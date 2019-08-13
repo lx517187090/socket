@@ -47,8 +47,8 @@ public class Server {
         String str ;
         do {
             str = bufferedReader.readLine();
-            tcpServer.broadcast();
-        } while ("0000".equals(str));
+            tcpServer.broadcast(str);
+        } while (!"0000".equals(str));
 
 
         UDPProvider.stop();

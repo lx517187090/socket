@@ -1,18 +1,19 @@
 package com.ch5UdpTcp.server;
 
-import java.io.BufferedReader;
+import com.ch5UdpTcp.server.handle.ClientHandler;
+
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TCPServer {
-
     private final int port;
     private ClientListener mListener;
+    private List<ClientHandler> clientHandlerList = new ArrayList<>();
 
-    public TCPServer(int port){
+    TCPServer(int port){
         this.port = port;
     }
 
@@ -28,90 +29,59 @@ public class TCPServer {
         return true;
     }
 
-    public void stop() {
+    void stop() {
         if (mListener != null){
             mListener.exit();
         }
+        for (ClientHandler clientHandler : clientHandlerList) {
+            clientHandler.exit();
+        }
+        clientHandlerList.clear();
     }
 
-    public void broadcast() {
-
+    void broadcast(String str) {
+        for (ClientHandler clientHandler : clientHandlerList) {
+            clientHandler.send(str);
+        }
     }
 
-
-    private static class ClientListener extends Thread{
-
+    private class ClientListener extends Thread{
         private ServerSocket serverSocket;
         private boolean done = false;
-        public ClientListener(int port) throws IOException {
+        ClientListener(int port) throws IOException {
             serverSocket = new ServerSocket(port);
         }
-
         @Override
         public void run() {
             super.run();
             System.out.println("server start");
             do {
-                Socket socket = null;
+                Socket socket;
                 try {
                     socket = serverSocket.accept();
                 }catch (IOException e){
-                    e.printStackTrace();
+                    continue;
                 }
-                ClientHandler clientHandler = new ClientHandler(socket);
-                clientHandler.start();
+                try {
+                    ClientHandler clientHandler = new ClientHandler(socket,
+                            handler -> clientHandlerList.remove(handler));
+                    //读取数据并打印
+                    clientHandler.readToPrint();
+                    clientHandlerList.add(clientHandler);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    System.out.println("客户端连接异常" + e.getMessage());
+                }
             }while (!done);
             System.out.println("server is stop...");
         }
 
-        public void exit(){
+        void exit(){
             done = true;
             try {
                 serverSocket.close();
             }catch (IOException e){
                 e.printStackTrace();
-            }
-        }
-    }
-
-    private static class ClientHandler extends Thread{
-        private Socket socket;
-        private boolean flag = false;
-
-        public ClientHandler(Socket socket){
-            this.socket = socket;
-        }
-
-        @Override
-        public void run() {
-            super.run();
-            System.out.println("新客户端连接 ：" + socket.getInetAddress() + "  P : " + socket.getPort());
-
-            try {
-                PrintStream socketStream = new PrintStream(socket.getOutputStream());
-                BufferedReader socketInput = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-
-                do {
-                    String str = socketInput.readLine();
-                    if ("bye".equals(str)){
-                        flag = false;
-                        socketStream.println("bye");
-                    }else {
-                        System.out.println(str);
-                        socketStream.println("回送：" + str.length());
-                    }
-                }while (!flag);
-
-                socketStream.close();
-                socketInput.close();
-            }catch (IOException e){
-                e.printStackTrace();
-            } finally {
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
             }
         }
     }

@@ -29,7 +29,7 @@ public class ServerProvider {
         //消息buffer
         final byte[] buffer = new byte[256];
 
-        public Provider(String sn, int port) {
+        Provider(String sn, int port) {
             super();
             this.sn = sn.getBytes();
             this.port = port;
@@ -98,7 +98,7 @@ public class ServerProvider {
             }
         }
 
-        public void exit(){
+        void exit(){
             done = true;
             close();
         }
@@ -111,7 +111,7 @@ public class ServerProvider {
         }
     }
 
-    public static void stop() {
+    static void stop() {
         if (PROVIDER_INSTANCE != null){
             PROVIDER_INSTANCE.exit();
             PROVIDER_INSTANCE = null;
