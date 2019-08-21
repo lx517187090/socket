@@ -14,7 +14,7 @@ import java.net.InetSocketAddress;
 public class EchoService {
     private final int port;
 
-    public EchoService(int port){
+    EchoService(int port){
         this.port = port;
     }
 

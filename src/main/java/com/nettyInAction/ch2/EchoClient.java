@@ -15,7 +15,7 @@ public class EchoClient {
     private final String host;
     private final int port;
 
-    public EchoClient(String host, int port) {
+    EchoClient(String host, int port) {
         this.host = host;
         this.port = port;
     }
@@ -39,7 +39,7 @@ public class EchoClient {
                     .remoteAddress(new InetSocketAddress(host, port))
                     .handler(new ChannelInitializer<SocketChannel>() {
                         @Override
-                        protected void initChannel(SocketChannel ch) throws Exception {
+                        protected void initChannel(SocketChannel ch) {
                             ch.pipeline().addLast(new EchoClientHandler());
                         }
                     });
