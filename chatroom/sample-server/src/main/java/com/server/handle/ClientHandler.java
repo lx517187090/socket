@@ -15,11 +15,11 @@ public class ClientHandler {
     private final SocketChannel socketChannel;
     private final ClientReadHandler readHandler;
     private final ClientWriteHandler writeHandler;
-    private final CloseNotify closeNotify;
+    private final ClientHandleCallback clientHandleCallback;
     private String clintInfo;
 
-    public ClientHandler(SocketChannel socketChannel, CloseNotify closeNotify) throws IOException {
-        this.socketChannel = socketChannel;
+    public ClientHandler(SocketChannel socketChannel, ClientHandleCallback clientHandleCallback) throws IOException {
+       this.socketChannel = socketChannel;
         //设置非阻塞模式
         socketChannel.configureBlocking(false);
         Selector readSelector = Selector.open();
@@ -27,9 +27,10 @@ public class ClientHandler {
         this.readHandler = new ClientReadHandler(readSelector);
 
         Selector writeSelector = Selector.open();
-        socketChannel.register(readSelector, SelectionKey.OP_WRITE);
+        socketChannel.register(writeSelector, SelectionKey.OP_WRITE);
         this.writeHandler = new ClientWriteHandler(writeSelector);
-        this.closeNotify = closeNotify;
+
+        this.clientHandleCallback = clientHandleCallback;
         this.clintInfo = socketChannel.getRemoteAddress().toString();
         System.out.println("新客户端连接  " + clintInfo);
     }
@@ -43,7 +44,7 @@ public class ClientHandler {
 
     public void exitBySelf() {
         exit();
-        closeNotify.onSelfClosed(this);
+        clientHandleCallback.onSelfClosed(this);
     }
 
     public void send(String str) {
@@ -52,6 +53,10 @@ public class ClientHandler {
 
     public void readToPrint() {
         readHandler.start();
+    }
+
+    public String getInfo() {
+        return clintInfo;
     }
 
     class ClientWriteHandler {
@@ -73,6 +78,9 @@ public class ClientHandler {
         }
 
         void send(String str) {
+            if (done) {
+                return;
+            }
             executorService.execute(new WriteRunnable(str));
         }
 
@@ -81,7 +89,7 @@ public class ClientHandler {
             private final String str;
 
             WriteRunnable(String str) {
-                this.str = str;
+                this.str = str ;
             }
 
             @Override
@@ -123,6 +131,7 @@ public class ClientHandler {
 
         void exit() {
             done = true;
+            selector.wakeup();
             CloseUtils.close(selector);
         }
 
@@ -138,7 +147,6 @@ public class ClientHandler {
                         }
                         continue;
                     }
-
                     Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
                     while (iterator.hasNext()) {
                         if (done) {
@@ -153,10 +161,9 @@ public class ClientHandler {
                             if (read > 0) {
                                 //丢弃换行符
                                 String str = new String(byteBuffer.array(), 0, read - 1);
-                                System.out.println(str);
+                                clientHandleCallback.onMessageArrived(ClientHandler.this, str);
                             }
                         }
-
                     }
                 } while (!done);
             } catch (IOException e) {
@@ -170,7 +177,10 @@ public class ClientHandler {
         }
     }
 
-    public interface CloseNotify {
+    public interface ClientHandleCallback {
+        //自身关闭通知
         void onSelfClosed(ClientHandler handler);
+
+        void onMessageArrived(ClientHandler handler, String msg);
     }
 }
