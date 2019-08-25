@@ -36,8 +36,14 @@ public class IoArgs {
     }
 
     public interface IoArgsEventListener{
+        /**
+         * 开始回答
+         */
         void onStarted(IoArgs args);
 
+        /**
+         * 消息发送完毕回调
+         */
         void onCompleted(IoArgs args);
     }
 }

@@ -3,10 +3,19 @@ package com.socket.core;
 import java.io.Closeable;
 import java.io.IOException;
 
+/**
+ * IO上下文
+ */
 public class IoContext implements Closeable {
 
+    /**
+     * 单例上下文
+     */
     private static IoContext INSTANCE;
 
+    /**
+     * 全局变量
+     */
     private final IoProvider ioProvider;
 
     public IoContext(IoProvider ioProvider) {

@@ -11,11 +11,15 @@ public class Connector {
     private UUID key =  UUID.randomUUID();
     //socketChannel
     private SocketChannel channel;
-    //发送者
+    //发送者（封装SocketChannel）
     private Sender sender;
     //接收者
     private Receive receiver;
 
+    /**
+     * 初始化
+     * @param channel
+     */
     public void setup(SocketChannel channel){
         this.channel = channel;
     }

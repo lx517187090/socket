@@ -10,14 +10,39 @@ import java.io.IOException;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * 发送与接收 实现类
+ */
 public class SocketChannelAdapter implements Sender, Receive, Cloneable {
-    //是否关闭
+
+    /**
+     * /是否关闭
+     */
     private final AtomicBoolean isClosed = new AtomicBoolean(false);
+
+    /**
+     * /具体发送者**
+     */
     private final SocketChannel channel;
+
+    /**
+     * 服务提供者
+     */
     private final IoProvider ioProvider;
+
+    /**
+     * channel关闭回调
+     */
     private final OnChannelStatusListener listener;
 
+    /**
+     * 发送回调
+     */
     private IoArgs.IoArgsEventListener receiverArgsEventListener;
+
+    /**
+     * 接受回调
+     */
     private IoArgs.IoArgsEventListener senderArgsEventListener;
 
     public SocketChannelAdapter(SocketChannel channel, IoProvider ioProvider,
@@ -28,16 +53,24 @@ public class SocketChannelAdapter implements Sender, Receive, Cloneable {
         channel.configureBlocking(false);
     }
 
+    /**
+     * 消息发送
+     * @param listener 发送消息回调
+     */
     @Override
     public boolean receiveAsync(IoArgs.IoArgsEventListener listener) throws IOException {
         if (isClosed.get()) {
             throw new IOException("current channel is closed");
         }
         receiverArgsEventListener = listener;
-
         return ioProvider.registerInput(channel, inputCallback);
     }
 
+    /**
+     * 发送实现
+     * @param args 数据
+     * @param listener 发送状态 回调
+     */
     @Override
     public boolean sendAsync(IoArgs args, IoArgs.IoArgsEventListener listener) throws IOException {
         if (isClosed.get()) {
@@ -50,7 +83,7 @@ public class SocketChannelAdapter implements Sender, Receive, Cloneable {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         if (isClosed.compareAndSet(false, true)) {
             ioProvider.unRegisterInput(channel);
             ioProvider.unRegisterOutput(channel);
@@ -59,7 +92,11 @@ public class SocketChannelAdapter implements Sender, Receive, Cloneable {
         }
     }
 
+    /**
+     * 接收回调实现
+     */
     private final IoProvider.HandlerInputCallback inputCallback = new IoProvider.HandlerInputCallback() {
+
         @Override
         protected void canProviderInput() {
             if (isClosed.get()) {
@@ -85,6 +122,9 @@ public class SocketChannelAdapter implements Sender, Receive, Cloneable {
         }
     };
 
+    /**
+     * 发送回调实现
+     */
     private final IoProvider.HandlerOutputCallback outputCallback = new IoProvider.HandlerOutputCallback() {
         @Override
         protected void canProviderOutput(Object attach) {
@@ -96,6 +136,9 @@ public class SocketChannelAdapter implements Sender, Receive, Cloneable {
         }
     };
 
+    /**
+     * 当前channel关闭回调
+     */
     public interface OnChannelStatusListener {
         void onChannelClose(SocketChannel channel);
     }

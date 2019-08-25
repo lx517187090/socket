@@ -11,6 +11,9 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * 服务提供者
+ */
 public class IoSelectorProvider implements IoProvider {
 
     //是否关闭
