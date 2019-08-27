@@ -9,10 +9,12 @@ import java.io.IOException;
 public interface Receive extends Closeable {
 
     /**
-     *
-     * @param listener
-     * @return
-     * @throws IOException
+     * 接收消息
      */
-    boolean receiveAsync(IoArgs.IoArgsEventListener listener) throws IOException;
+    boolean receiveAsync(IoArgs args) throws IOException;
+
+    /**
+     * 设置接收监听
+     */
+    void setReceiveListener(IoArgs.IoArgsEventListener listener);
 }

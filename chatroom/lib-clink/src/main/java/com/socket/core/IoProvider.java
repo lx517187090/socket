@@ -10,7 +10,8 @@ public interface IoProvider extends Closeable {
 
     /**
      * 注册输入
-     * @param channel 从channel中异步读取数据
+     *
+     * @param channel  从channel中异步读取数据
      * @param callback 当channel可读时回调
      * @return zz
      */
@@ -22,13 +23,15 @@ public interface IoProvider extends Closeable {
     boolean registerOutput(SocketChannel channel, HandlerOutputCallback callback);
 
     /**
-     *  取消输入注册
+     * 取消输入注册
+     *
      * @param channel channel
      */
     void unRegisterInput(SocketChannel channel);
 
     /**
-     *  取消输出注册
+     * 取消输出注册
+     *
      * @param channel channel
      */
     void unRegisterOutput(SocketChannel channel);
@@ -36,7 +39,7 @@ public interface IoProvider extends Closeable {
     /**
      * 输入回调
      */
-    abstract class HandlerInputCallback implements Runnable{
+    abstract class HandlerInputCallback implements Runnable {
         @Override
         public void run() {
             canProviderInput();
@@ -51,18 +54,23 @@ public interface IoProvider extends Closeable {
     /**
      * 输出回调
      */
-    abstract class HandlerOutputCallback implements Runnable{
+    abstract class HandlerOutputCallback implements Runnable {
 
         private Object attach;
 
         @Override
-        public void run() {
+        public final void run() {
             canProviderOutput(attach);
         }
 
         protected abstract void canProviderOutput(Object attach);
 
-        public void setAttach(IoArgs args){
+        public final <T> T getAttach() {
+            T attach = (T)this.attach;
+            return attach;
+        }
+
+        public void setAttach(IoArgs args) {
             this.attach = args;
         }
     }
