@@ -1,9 +1,6 @@
 package com.socket.impl.async;
 
-import com.socket.core.IoArgs;
-import com.socket.core.SendDispatcher;
-import com.socket.core.SendPacket;
-import com.socket.core.Sender;
+import com.socket.core.*;
 import com.socket.utils.CloseUtils;
 
 import java.io.IOException;
@@ -12,7 +9,10 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class AsynSendDispatcher implements SendDispatcher {
-
+    /**
+     * 是否被关闭
+     */
+    private final AtomicBoolean isClosed = new AtomicBoolean(false);
     /**
      * 发送者
      */
@@ -97,7 +97,7 @@ public class AsynSendDispatcher implements SendDispatcher {
             args.writeLength(total);
         }
 
-        byte[] bytes = packetTemp.bytes();
+        byte[] bytes = packetTemp.open();
         //数据写入args中
         int count = args.readFrom(bytes, position);
         position += count;
@@ -121,7 +121,13 @@ public class AsynSendDispatcher implements SendDispatcher {
 
     @Override
     public void close() throws IOException {
-
+        if (isClosed.compareAndSet(false, true)) {
+            SendPacket packet = this.packetTemp;
+            if (packet != null) {
+                packet = null;
+                CloseUtils.close(packet);
+            }
+        }
     }
 
     @Override
