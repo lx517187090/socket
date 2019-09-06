@@ -1,37 +1,32 @@
 package com.socket.impl.async;
 
-import com.socket.core.*;
+import com.socket.core.IoArgs;
+import com.socket.core.SendDispatcher;
+import com.socket.core.SendPacket;
+import com.socket.core.Sender;
 import com.socket.utils.CloseUtils;
 
 import java.io.IOException;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class AsynSendDispatcher implements SendDispatcher {
+/**
+ * 异步发送数据调度封装
+ */
+public class AsyncSendDispatcher implements SendDispatcher {
+
+    private final Sender sender;
+
+    private final Queue<SendPacket> queue = new ConcurrentLinkedQueue<>();
+
     /**
      * 是否被关闭
      */
-    private final AtomicBoolean isClosed = new AtomicBoolean(false);
-    /**
-     * 发送者
-     */
-    private final Sender sender;
-
-    /**
-     * 非阻塞线程安全队列
-     */
-    private final Queue<SendPacket> queue = new ConcurrentLinkedDeque<>();
-
-    /**
-     * 发送状态
-     */
-    private AtomicBoolean isSending = new AtomicBoolean();
+    private final AtomicBoolean isClosed = new AtomicBoolean();
 
     private IoArgs ioArgs = new IoArgs();
-    /**
-     * 当前发送数据
-     */
+
     private SendPacket packetTemp;
 
     /**
@@ -39,27 +34,38 @@ public class AsynSendDispatcher implements SendDispatcher {
      */
     private int total;
 
+
     /**
      * 当前packet发送进度
      */
     private int position;
 
-    public AsynSendDispatcher(Sender sender) {
+    /**
+     * 是否发送中
+     */
+    private final AtomicBoolean isSending = new AtomicBoolean();
+
+    public AsyncSendDispatcher(Sender sender) {
         this.sender = sender;
     }
 
+    /**
+     * 发送数据
+     *
+     * @param sendPacket 数据
+     */
     @Override
-    public void send(SendPacket packet) {
-        queue.offer(packet);
+    public void send(SendPacket sendPacket) {
+        queue.offer(sendPacket);
         if (isSending.compareAndSet(false, true)) {
             sendNextPacket();
         }
     }
 
+
     private SendPacket tackPacket() {
         SendPacket packet = queue.poll();
         if (packet != null && packet.isCanceled()) {
-            //已取消不用发送
             return tackPacket();
         }
         return packet;
@@ -72,49 +78,47 @@ public class AsynSendDispatcher implements SendDispatcher {
         }
         SendPacket packet = this.packetTemp = tackPacket();
         if (packet == null) {
-            //队里额为空 取消发送状态
+            //队列为空 取消发送状态
             isSending.set(false);
             return;
         }
-        //total = packet.length();
+        total = packet.length();
         position = 0;
         sendCurrentPacket();
+
     }
 
     /**
      * 真实发送packet
      */
     private void sendCurrentPacket() {
-        IoArgs args = this.ioArgs;
-        //开始清理
-        args.startWriting();
-        //完全发送完数据，发送下一个
+        IoArgs ioArgs = this.ioArgs;
+
+        //开始   清理
+        ioArgs.startWriting();
+
         if (position >= total) {
             sendNextPacket();
             return;
         } else if (position == 0) {
             //首包 需要携带长度信息
-            args.writeLength(total);
+            ioArgs.writeLength(total);
         }
-
-        byte[] bytes = null;//packetTemp.open();
-        //数据写入args中
-        int count = args.readFrom(bytes, position);
+        byte[] bytes = packetTemp.bytes();
+        //把数据写入ioArgs
+        int count = ioArgs.readFrom(bytes, position);
         position += count;
 
         //完成封装
-        args.finishWriting();
+        ioArgs.finishWriting();
 
         try {
-            sender.sendAsync(args, ioArgsEventListener);
+            sender.sendAsync(ioArgs, ioArgsEventListener);
         } catch (IOException e) {
             closeAndNotify();
         }
     }
 
-    /**
-     * 关闭自己并通知外层
-     */
     private void closeAndNotify() {
         CloseUtils.close(this);
     }
@@ -122,17 +126,13 @@ public class AsynSendDispatcher implements SendDispatcher {
     @Override
     public void close() throws IOException {
         if (isClosed.compareAndSet(false, true)) {
+            isSending.set(false);
             SendPacket packet = this.packetTemp;
             if (packet != null) {
-                packet = null;
+                packetTemp = null;
                 CloseUtils.close(packet);
             }
         }
-    }
-
-    @Override
-    public void cancel(SendPacket packet) {
-
     }
 
     private final IoArgs.IoArgsEventListener ioArgsEventListener = new IoArgs.IoArgsEventListener() {
@@ -147,5 +147,11 @@ public class AsynSendDispatcher implements SendDispatcher {
             sendCurrentPacket();
         }
     };
+
+    @Override
+    public void cancel(SendPacket sendPacket) {
+
+    }
+
 
 }

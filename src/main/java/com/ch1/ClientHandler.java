@@ -15,12 +15,7 @@ public class ClientHandler {
 
     public void start(){
         System.out.println("新客户端接入");
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                doStart();
-            }
-        }).start();
+        new Thread(this::doStart).start();
     }
 
     private void doStart() {

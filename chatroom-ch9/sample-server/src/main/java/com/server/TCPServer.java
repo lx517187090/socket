@@ -33,7 +33,7 @@ public class TCPServer implements ClientHandler.ClientHandleCallback {
             //设置之为非阻塞
             server.configureBlocking(false);
             //绑定到本地端口
-            server.socket().bind(new InetSocketAddress(port));
+            server.bind(new InetSocketAddress(port));
             //注册客户端连接到达监听
             server.register(selector, SelectionKey.OP_ACCEPT);
             this.server = server;
@@ -76,7 +76,7 @@ public class TCPServer implements ClientHandler.ClientHandleCallback {
     @Override
     public void onMessageArrived(ClientHandler handler, String msg) {
         //打印到屏幕
-        System.out.println("received - " + handler.getInfo() + ":" + msg);
+        System.out.println("received - " + ":" + msg);
         forwardingThreadPoolExecutor.execute(() -> {
             for (ClientHandler clientHandler : clientHandlerList) {
                 if (clientHandler.equals(handler)) {
@@ -119,7 +119,6 @@ public class TCPServer implements ClientHandler.ClientHandleCallback {
                             try {
                                 ClientHandler clientHandler = new ClientHandler(socketChannel, TCPServer.this);
                                 //读取数据并打印
-                                clientHandler.readToPrint();
                                 synchronized (TCPServer.this) {
                                     clientHandlerList.add(clientHandler);
                                 }

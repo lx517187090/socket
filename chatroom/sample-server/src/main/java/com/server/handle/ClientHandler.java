@@ -19,9 +19,10 @@ public class ClientHandler {
     private String clintInfo;
 
     public ClientHandler(SocketChannel socketChannel, ClientHandleCallback clientHandleCallback) throws IOException {
-       this.socketChannel = socketChannel;
+        this.socketChannel = socketChannel;
         //设置非阻塞模式
         socketChannel.configureBlocking(false);
+
         Selector readSelector = Selector.open();
         socketChannel.register(readSelector, SelectionKey.OP_READ);
         this.readHandler = new ClientReadHandler(readSelector);
@@ -86,10 +87,10 @@ public class ClientHandler {
 
         class WriteRunnable implements Runnable {
 
-            private final String str;
+            private final String str ;
 
             WriteRunnable(String str) {
-                this.str = str ;
+                this.str = str + '\n';   //增加换行符
             }
 
             @Override

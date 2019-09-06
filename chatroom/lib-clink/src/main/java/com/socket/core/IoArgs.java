@@ -10,7 +10,10 @@ import java.nio.channels.SocketChannel;
  */
 public class IoArgs {
 
+    public int capacity;
+
     private int limit = 256;
+
     //分配byte数组
     private byte[] byteBuff = new byte[256];
 
@@ -57,6 +60,10 @@ public class IoArgs {
      */
     public void limit(int limit) {
         this.limit = limit;
+    }
+
+    public int capacity() {
+        return capacity;
     }
 
     /**
@@ -109,7 +116,7 @@ public class IoArgs {
     /**
      * 读取长度
      */
-    public int readLenth(){
+    public int readLenth() {
         return buffer.getInt();
     }
 
